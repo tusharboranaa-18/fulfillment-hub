@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fulfillment Hub — Karmic Seed</title>
+<style>
+:root{
+  --bg:#f4f6f3;--panel:#ffffff;--text:#1c221c;--sub:#636e65;--line:#e3e8e2;
+  --accent:#2d6a4f;--accent-ink:#ffffff;--good:#15803d;--warn:#b45309;--bad:#dc2626;
+  --radius:14px;--shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.04);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#111613;--panel:#19201b;--text:#f0f3f0;--sub:#96a297;--line:#28332b;}
+}
+:root[data-theme="dark"]{--bg:#111613;--panel:#19201b;--text:#f0f3f0;--sub:#96a297;--line:#28332b;}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100%}
+header{position:sticky;top:0;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;background:var(--panel);border-bottom:1px solid var(--line);z-index:5;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:16px;margin:0;font-weight:700;letter-spacing:-.2px}
+.pill-toggle{display:flex;background:var(--bg);border-radius:999px;padding:3px;gap:2px}
+.pill-toggle button{border:0;background:transparent;padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--sub);cursor:pointer}
+.pill-toggle button.active{background:var(--accent);color:var(--accent-ink)}
+nav.tabs{display:flex;gap:4px;padding:8px 12px;overflow-x:auto;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:53px;z-index:4}
+nav.tabs button{border:0;background:transparent;padding:8px 12px;border-radius:9px;font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;white-space:nowrap}
+nav.tabs button.active{background:var(--bg);color:var(--text)}
+main{padding:16px;max-width:1080px;margin:0 auto}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.kpi .n{font-size:26px;font-weight:800;line-height:1.1}
+.kpi .l{font-size:12px;color:var(--sub);margin-top:2px}
+.kpi.alert .n{color:var(--bad)}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin:20px 0 10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--sub);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.tbl-wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.b-new{background:#edf7ed;color:#1e4620}.b-picking{background:#fef3c7;color:#92400e}
+.b-packing{background:#e0f2fe;color:#0369a1}.b-staged{background:#e2e8f0;color:#334155}
+.b-shipped{background:#dcfce7;color:#166534}.b-priority{background:#fee2e2;color:#b91c1c}
+.b-issue{background:#fee2e2;color:#b91c1c}.b-ok{background:#dcfce7;color:#166534}.b-low{background:#fef3c7;color:#92400e}
+:root[data-theme="dark"] .b-new,:root:not([data-theme=light]) .b-new{filter:brightness(1.3)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.filters button{border:1px solid var(--line);background:var(--panel);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer}
+.filters button.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+button.btn{border:0;background:var(--accent);color:var(--accent-ink);padding:8px 14px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}
+button.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+button.btn.sm{padding:5px 10px;font-size:12px}
+button.btn.danger{background:var(--bad)}
+.row{display:flex;align-items:center;gap:8px}
+.between{justify-content:space-between}
+.muted{color:var(--sub);font-size:12px}
+
+/* Enhanced Alert Banner & View Button Contrast */
+.banner{
+  background:#fee2e2;
+  color:#7f1d1d;
+  border:1px solid #fca5a5;
+  border-radius:var(--radius);
+  padding:12px 14px;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px
+}
+.banner .btn{
+  background:#ffffff !important;
+  color:#991b1b !important;
+  border:1px solid #f87171 !important;
+  box-shadow:0 1px 3px rgba(0,0,0,0.1);
+  font-weight:700;
+  white-space:nowrap;
+}
+.banner .btn:hover{
+  background:#fef2f2 !important;
+  color:#7f1d1d !important;
+}
+
+:root[data-theme=dark] .banner, :root:not([data-theme=light]) .banner{
+  background:#3b1414;
+  color:#fecaca;
+  border-color:#5c1d1d;
+}
+:root[data-theme=dark] .banner .btn, :root:not([data-theme=light]) .banner .btn{
+  background:#ef4444 !important;
+  color:#ffffff !important;
+  border:1px solid #dc2626 !important;
+}
+:root[data-theme=dark] .banner .btn:hover, :root:not([data-theme=light]) .banner .btn:hover{
+  background:#dc2626 !important;
+}
+
+/* Warehouse mode: big and simple */
+.wh-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:14px;box-shadow:var(--shadow)}
+.wh-title{font-size:20px;font-weight:800;margin:0 0 4px}
+.wh-sub{color:var(--sub);font-size:14px;margin-bottom:14px}
+.wh-item{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--line);border-radius:12px;margin-bottom:10px;font-size:16px;font-weight:600;cursor:pointer;background:var(--bg)}
+.wh-item.done{border-color:var(--good);background:#f0fdf4;text-decoration:line-through;color:var(--sub)}
+.wh-item .chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--sub);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px}
+.wh-item.done .chk{background:var(--good);border-color:var(--good);color:#fff}
+.wh-big-btn{width:100%;padding:18px;font-size:17px;border-radius:14px;margin-top:6px}
+.wh-empty{text-align:center;padding:60px 20px;color:var(--sub)}
+.wh-empty .em{font-size:44px;margin-bottom:10px}
+select,input[type=number]{font-family:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:13px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+@media(min-width:640px){.modal-bg{align-items:center}}
+.modal{background:var(--panel);width:100%;max-width:420px;border-radius:18px 18px 0 0;padding:20px;box-shadow:var(--shadow)}
+@media(min-width:640px){.modal{border-radius:18px}}
+.modal h3{margin:0 0 12px}
+.modal .row{margin-bottom:12px}
+.close{background:none;border:0;color:var(--sub);font-size:20px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ---------- Real-world data for Karmic Seed ----------
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=arr=>arr[rnd(0,arr.length-1)];
+
+const COURIERS=[
+  {id:'c1', name:'UPS Carbon Neutral Ground', cost:7.20, speedHrs:36, pickup:'11:30, 16:30'},
+  {id:'c2', name:'EcoFreight Tri-State (NY/NJ Metro)', cost:4.40, speedHrs:48, pickup:'15:00'},
+  {id:'c3', name:'FedEx Sustainable Express Priority', cost:13.50, speedHrs:12, pickup:'10:00, 14:00, 17:30'}
+];
+
+const CATALOG=[
+  {sku:'KS-PLM-10R', name:'10" Areca Palm Leaf Round Plate (Pack of 25)', main:32, overflow:140, threshold:15},
+  {sku:'KS-PLM-08S', name:'8" Areca Palm Leaf Square Plate (Pack of 25)', main:18, overflow:80, threshold:12},
+  {sku:'KS-PLM-06D', name:'6" Fallen Leaf Appetizer Dish (Pack of 50)', main:8, overflow:65, threshold:10},
+  {sku:'KS-BAG-16B', name:'16 oz Sugarcane Bagasse Soup Bowl (Pack of 50)', main:28, overflow:160, threshold:20},
+  {sku:'KS-BAG-24B', name:'24 oz Sugarcane Bagasse Salad Bowl (Pack of 50)', main:11, overflow:75, threshold:15},
+  {sku:'KS-BAG-CLP', name:'9×6" Bagasse Clamshell Takeout Box (Pack of 100)', main:24, overflow:130, threshold:18},
+  {sku:'KS-WHT-CTL', name:'Wheat Straw Cutlery Combo Pack (150 pc)', main:42, overflow:200, threshold:25},
+  {sku:'KS-WHT-FOR', name:'Heavy-Duty Wheat Straw Dinner Forks (100 pc)', main:19, overflow:95, threshold:15},
+  {sku:'KS-BAM-STR', name:'Bamboo Fiber Drinking Straws (Pack of 200)', main:9, overflow:70, threshold:15},
+  {sku:'KS-COC-SMO', name:'Reclaimed Coconut Shell Smoothie Bowl (Pack of 4)', main:16, overflow:45, threshold:8},
+  {sku:'KS-PLM-CMP', name:'10" 3-Compartment Palm Catering Tray (Pack of 25)', main:6, overflow:50, threshold:10},
+  {sku:'KS-PLM-OVR', name:'12×8" Palm Leaf Oval Grazing Platter (Pack of 15)', main:14, overflow:60, threshold:10},
+  {sku:'KS-BAG-12T', name:'12 oz Sugarcane Meal & Tapas Tray (Pack of 50)', main:17, overflow:90, threshold:12},
+  {sku:'KS-WHT-STK', name:'Wheat Straw Coffee Stirrers & Spoons (Pack of 250)', main:35, overflow:150, threshold:20},
+  {sku:'KS-PLM-DIP', name:'3.5" Palm Leaf Dipping Sauce Ramekins (Pack of 100)', main:7, overflow:60, threshold:10},
+  {sku:'KS-COC-CUP', name:'Handcrafted Coconut Coir Espresso Cup (Pack of 6)', main:10, overflow:35, threshold:8}
+];
+
+let PRODUCTS = CATALOG.map(p=>({...p}));
+const STATUSES=['New','Picking','Packing','Staged','Shipped'];
+const CHANNELS=['Whole Foods B2B','Direct Webstore','Faire Wholesale','Eco-Catering Co','Amazon Storefront'];
+
+function genOrders(n){
+  const now=Date.now();
+  return Array.from({length:n},(_,i)=>{
+    const priority=Math.random()<0.18;
+    const items=Array.from({length:rnd(1,3)},()=>{
+      const p=pick(PRODUCTS); return {sku:p.sku, name:p.name, qty:rnd(1,3)};
+    });
+    const statusIdx = i<n*0.55 ? rnd(0,4) : 0;
+    const deadline = now + (priority? rnd(1,6):rnd(10,30))*3600*1000;
+    return {
+      id:'KS-'+(5100+i),
+      channel:pick(CHANNELS),
+      priority, items, status:STATUSES[statusIdx], deadline,
+      courier: statusIdx>=2? pick(COURIERS).id : null,
+      issue:null
+    };
+  });
+}
+
+function save(){ try{ localStorage.setItem('karmic-seed-fh-state', JSON.stringify({ORDERS,ISSUES,PRODUCTS})); }catch(e){} }
+function load(){ try{ const raw=localStorage.getItem('karmic-seed-fh-state'); if(raw) return JSON.parse(raw); }catch(e){} return null; }
+function resetDemo(){ try{ localStorage.removeItem('karmic-seed-fh-state'); }catch(e){} location.reload(); }
+
+let ORDERS=genOrders(34);
+let ISSUES=[];
+const _saved=load();
+if(_saved){ ORDERS=_saved.ORDERS; ISSUES=_saved.ISSUES; PRODUCTS=_saved.PRODUCTS; }
+
+const REVERT_STATUS={'Stock shortfall at Main':'New','Item not on shelf':'New','Courier missed pickup':'Staged'};
+let view = 'office';
+let officeTab='dashboard';
+let officeFilter='all';
+let whStage='Picking';
+let activePickOrder=null;
+let pickChecks={};
+let modal=null;
+
+function fmtHrs(ms){
+  const h=(ms-Date.now())/3600000;
+  if(h<0) return 'OVERDUE';
+  if(h<1) return Math.round(h*60)+'m left';
+  return h.toFixed(1)+'h left';
+}
+function badgeForStatus(s){return `<span class="badge b-${s.toLowerCase()}">${s}</span>`}
+function stockStatus(p){
+  const total=p.main+p.overflow;
+  if(p.main<p.threshold && p.overflow>0) return {cls:'b-low',label:'Needs transfer'};
+  if(total<p.threshold) return {cls:'b-issue',label:'Low stock'};
+  return {cls:'b-ok',label:'In Stock'};
+}
+function atRiskOrders(){
+  return ORDERS.filter(o=>o.priority && o.status!=='Shipped' && (o.deadline-Date.now())<3*3600*1000);
+}
+function openIssues(){return ISSUES.filter(i=>!i.resolved)}
+
+// ---------- Actions ----------
+function advance(id, from, to){
+  const o=ORDERS.find(o=>o.id===id);
+  if(o.status!==from) return;
+  o.status=to;
+  if(to==='Packing' && !o.courier){ o.courier = o.priority? 'c3':'c2'; }
+  save(); render();
+}
+function startPick(id){ activePickOrder=id; const o=ORDERS.find(o=>o.id===id); o.status='Picking'; pickChecks={}; o.items.forEach((it,idx)=>pickChecks[idx]=false); render(); }
+function backToList(id){ const o=ORDERS.find(o=>o.id===id); if(o && o.status==='Picking') o.status='New'; activePickOrder=null; save(); render(); }
+function toggleCheck(idx){ pickChecks[idx]=!pickChecks[idx]; render(); }
+function confirmPick(id){
+  const o=ORDERS.find(o=>o.id===id);
+  const shortfall = o.items.some(it=>{ const p=PRODUCTS.find(p=>p.sku===it.sku); return !p || p.main<it.qty; });
+  if(shortfall){
+    o.issue='Stock shortfall at Main';
+    ISSUES.unshift({id:'ISS-'+rnd(1000,9999), order:o.id, type:'Stock shortfall at Main', ts:Date.now(), resolved:false});
+    activePickOrder=null; save(); render(); return;
+  }
+  o.items.forEach(it=>{ const p=PRODUCTS.find(p=>p.sku===it.sku); p.main-=it.qty; });
+  o.status='Packing';
+  if(!o.courier) o.courier = o.priority? 'c3':'c2';
+  activePickOrder=null;
+  save(); render();
+}
+function reportIssue(id,type){
+  const o=ORDERS.find(o=>o.id===id); o.issue=type;
+  ISSUES.unshift({id:'ISS-'+rnd(1000,9999), order:id, type, ts:Date.now(), resolved:false});
+  save(); render();
+}
+function resolveIssue(issId){
+  const iss=ISSUES.find(i=>i.id===issId); iss.resolved=true;
+  const o=ORDERS.find(o=>o.id===iss.order);
+  if(o){ o.issue=null; const target=REVERT_STATUS[iss.type]; if(target) o.status=target; }
+  save(); render();
+}
+function setCourier(id, cid){ const o=ORDERS.find(o=>o.id===id); o.courier=cid; save(); render(); }
+function doTransfer(sku, qty){
+  const p=PRODUCTS.find(p=>p.sku===sku);
+  qty=Math.min(qty,p.overflow);
+  p.overflow-=qty; p.main+=qty;
+  modal=null; save(); render();
+}
+
+// ---------- Renderers ----------
+function renderHeader(){
+  return `<header>
+    <h1>🌱 Fulfillment Hub <span class="muted" style="font-weight:500">— Karmic Seed</span></h1>
+    <div class="pill-toggle" style="margin-left:auto">
+      <button class="${view==='office'?'active':''}" onclick="view='office';render()">Office</button>
+      <button class="${view==='warehouse'?'active':''}" onclick="view='warehouse';whStage='Picking';render()">Warehouse</button>
+    </div>
+    <button class="btn sm ghost" onclick="resetDemo()" title="Clears saved demo progress and reseeds sample data">↺ Reset demo</button>
+  </header>`;
+}
+
+function renderOfficeTabs(){
+  const tabs=[['dashboard','Dashboard'],['orders','Orders'],['inventory','Inventory'],['issues','Issues']];
+  return `<nav class="tabs">${tabs.map(([k,l])=>`<button class="${officeTab===k?'active':''}" onclick="officeTab='${k}';render()">${l}${k==='issues'&&openIssues().length?' ('+openIssues().length+')':''}</button>`).join('')}</nav>`;
+}
+
+function renderDashboard(){
+  const risk=atRiskOrders();
+  const shipped=ORDERS.filter(o=>o.status==='Shipped').length;
+  const ready=ORDERS.filter(o=>o.status==='Staged').length;
+  return `
+  ${risk.length?`<div class="banner"><span>⚠ ${risk.length} urgent eco-tableware shipment(s) at risk of missing deadline</span><button class="btn sm" onclick="officeTab='orders';officeFilter='priority';render()">View</button></div>`:''}
+  <div class="grid kpis">
+    <div class="card kpi"><div class="n">${ORDERS.length}</div><div class="l">Orders processed today</div></div>
+    <div class="card kpi ${risk.length?'alert':''}"><div class="n">${risk.length}</div><div class="l">Priority at risk</div></div>
+    <div class="card kpi"><div class="n">${ready}</div><div class="l">Pallets staged for pickup</div></div>
+    <div class="card kpi"><div class="n">${shipped}</div><div class="l">Dispatched today</div></div>
+    <div class="card kpi ${openIssues().length?'alert':''}"><div class="n">${openIssues().length}</div><div class="l">Open fulfillment issues</div></div>
+  </div>
+  <h2>Priority orders at risk</h2>
+  <div class="tbl-wrap"><table><tr><th>Order ID</th><th>Biodegradable Items</th><th>Status</th><th>Cutoff Time</th></tr>
+  ${risk.length?risk.map(o=>`<tr><td>${o.id}</td><td>${o.items.length} product(s)</td><td>${badgeForStatus(o.status)}</td><td style="color:var(--bad);font-weight:700">${fmtHrs(o.deadline)}</td></tr>`).join(''):'<tr><td colspan="4" class="muted" style="padding:16px">All priority dispatches are running on schedule.</td></tr>'}
+  </table></div>`;
+}
+
+function renderOrders(){
+  const filters=[['all','All'],['priority','Priority'],['issue','Issues'],['New','New'],['Picking','Picking'],['Packing','Packing'],['Staged','Staged'],['Shipped','Shipped']];
+  let list=ORDERS;
+  if(officeFilter==='priority') list=list.filter(o=>o.priority);
+  else if(officeFilter==='issue') list=list.filter(o=>o.issue);
+  else if(officeFilter!=='all') list=list.filter(o=>o.status===officeFilter);
+  list=[...list].sort((a,b)=> (b.priority-a.priority) || a.deadline-b.deadline);
+  return `<div class="filters">${filters.map(([k,l])=>`<button class="${officeFilter===k?'active':''}" onclick="officeFilter='${k}';render()">${l}</button>`).join('')}</div>
+  <p class="muted" style="margin-top:0">Eco-conscious carrier assignment can be modified during Packing or Staging. Standard shipments default to Regional Ground; expedited orders default to Priority Express.</p>
+  <div class="tbl-wrap"><table><tr><th>Order</th><th>Channel</th><th>Items</th><th>Status</th><th>Logistics Carrier</th><th>Deadline</th><th></th></tr>
+  ${list.map(o=>{
+    const editable = o.courier && ['Packing','Staged'].includes(o.status);
+    const courierCell = editable
+      ? `<select onchange="setCourier('${o.id}', this.value)">${COURIERS.map(c=>`<option value="${c.id}" ${c.id===o.courier?'selected':''}>${c.name} · $${c.cost.toFixed(2)} · ${c.speedHrs}h</option>`).join('')}</select>`
+      : (o.courier?COURIERS.find(c=>c.id===o.courier).name:'—');
+    return `<tr>
+    <td>${o.id} ${o.priority?'<span class="badge b-priority">PRIORITY</span>':''} ${o.issue?'<span class="badge b-issue">'+o.issue+'</span>':''}</td>
+    <td>${o.channel}</td><td>${o.items.length}</td><td>${badgeForStatus(o.status)}</td>
+    <td>${courierCell}</td>
+    <td style="${o.priority?'color:var(--bad);font-weight:700':''}">${o.status==='Shipped'?'—':fmtHrs(o.deadline)}</td>
+    <td>${o.status==='Shipped'?'':`<button class="btn sm ghost" onclick="reportIssue('${o.id}','Item not on shelf')">Flag issue</button>`}</td>
+  </tr>`}).join('')}
+  </table></div>`;
+}
+
+function renderInventory(){
+  return `<p class="muted" style="margin-top:0">Clifton, NJ Distribution Facility: Active pick bays replenish directly from High-Bay Overflow Pallet Racking.</p>
+  <div class="tbl-wrap"><table><tr><th>SKU</th><th>Agricultural Waste Product</th><th>Pick Bay (Cases)</th><th>High-Bay Overflow</th><th>Status</th><th></th></tr>
+  ${PRODUCTS.map(p=>{const s=stockStatus(p);return `<tr>
+    <td><strong>${p.sku}</strong></td><td>${p.name}</td><td>${p.main}</td><td>${p.overflow}</td>
+    <td><span class="badge ${s.cls}">${s.label}</span></td>
+    <td>${p.overflow>0&&p.main<p.threshold?`<button class="btn sm" onclick="modal={type:'transfer',sku:'${p.sku}'};render()">Replenish Pick Bay</button>`:''}</td>
+  </tr>`}).join('')}
+  </table></div>`;
+}
+
+function renderIssues(){
+  const list=ISSUES;
+  return `<div class="tbl-wrap"><table><tr><th>Issue ID</th><th>Order</th><th>Type</th><th>Reported Time</th><th>Resolution</th><th></th></tr>
+  ${list.length?list.map(i=>`<tr>
+    <td>${i.id}</td><td>${i.order}</td><td>${i.type}</td>
+    <td>${new Date(i.ts).toLocaleTimeString()}</td>
+    <td>${i.resolved?'<span class="badge b-ok">Resolved</span>':'<span class="badge b-issue">Action Required</span>'}</td>
+    <td>${i.resolved?'':`<button class="btn sm" onclick="resolveIssue('${i.id}')">Resolve & Requeue</button>`}</td>
+  </tr>`).join(''):'<tr><td colspan="6" class="muted" style="padding:16px">No warehouse floor issues logged.</td></tr>'}
+  </table></div>`;
+}
+
+function renderModal(){
+  if(!modal) return '';
+  if(modal.type==='transfer'){
+    const p=PRODUCTS.find(p=>p.sku===modal.sku);
+    return `<div class="modal-bg" onclick="if(event.target===this){modal=null;render()}"><div class="modal">
+      <div class="row between"><h3>Stock Replenishment — ${p.sku}</h3><button class="close" onclick="modal=null;render()">×</button></div>
+      <p class="muted">${p.name}<br>Overflow racking has <strong>${p.overflow}</strong> packs. Active pick bay has <strong>${p.main}</strong> packs.</p>
+      <div class="row"><input id="tqty" type="number" min="1" max="${p.overflow}" value="${Math.min(p.overflow, p.threshold*2)}" style="width:100px"><span class="muted">cases → Pick Bay</span></div>
+      <button class="btn" style="width:100%;margin-top:10px" onclick="doTransfer('${p.sku}', parseInt(document.getElementById('tqty').value||1))">Confirm Bay Restock</button>
+    </div></div>`;
+  }
+  return '';
+}
+
+// ---------- Warehouse Mode ----------
+function whQueue(stage){
+  const match = stage==='Picking' ? 'New' : stage;
+  return ORDERS.filter(o=>o.status===match && !o.issue).sort((a,b)=>b.priority-a.priority || a.deadline-b.deadline);
+}
+function renderWarehouse(){
+  const stages=['Picking','Packing','Staged'];
+  const q=whQueue(whStage);
+  return `<div style="max-width:520px;margin:0 auto">
+  <div class="pill-toggle" style="margin-bottom:14px;width:100%">${stages.map(s=>`<button style="flex:1" class="${whStage===s?'active':''}" onclick="whStage='${s}';activePickOrder=null;render()">${s} (${whQueue(s).length})</button>`).join('')}</div>
+  ${renderWhStage(q)}
+  </div>`;
+}
+function renderWhStage(q){
+  if(whStage==='Picking'){
+    if(activePickOrder){
+      const o=ORDERS.find(o=>o.id===activePickOrder);
+      const allChecked=o.items.every((_,i)=>pickChecks[i]);
+      return `<div class="wh-card">
+        <div class="wh-title">${o.id} ${o.priority?'⚡ PRIORITY CATERING':''}</div>
+        <div class="wh-sub">${o.channel} · ${o.priority?fmtHrs(o.deadline):'Standard dispatch'}</div>
+        ${o.items.map((it,idx)=>`<div class="wh-item ${pickChecks[idx]?'done':''}" onclick="toggleCheck(${idx})">
+          <span class="chk">${pickChecks[idx]?'✓':''}</span> ${it.qty}×${it.name} <span class="muted" style="margin-left:auto;font-weight:500">${it.sku}</span>
+        </div>`).join('')}
+        <button class="btn wh-big-btn" ${allChecked?'':'style="opacity:.4;pointer-events:none"'} onclick="confirmPick('${o.id}')">✓ Confirm items picked from bay</button>
+        <button class="btn ghost wh-big-btn" onclick="activePickOrder=null;reportIssue('${o.id}','Item not on shelf')">⚠ Cannot locate item on shelf</button>
+        <button class="btn ghost wh-big-btn" onclick="backToList('${o.id}')">← Return to queue</button>
+      </div>`;
+    }
+    if(!q.length) return `<div class="wh-empty"><div class="em">🌱</div>All palm & bagasse tableware picked!</div>`;
+    return q.map(o=>`<div class="wh-card" onclick="startPick('${o.id}')" style="cursor:pointer">
+      <div class="wh-title">${o.id} ${o.priority?'⚡ PRIORITY':''}</div>
+      <div class="wh-sub">${o.items.length} product SKU(s) · ${o.channel} ${o.priority?'· '+fmtHrs(o.deadline):''}</div>
+    </div>`).join('');
+  }
+  if(whStage==='Packing'){
+    if(!q.length) return `<div class="wh-empty"><div class="em">📦</div>Packing station clear</div>`;
+    return q.map(o=>`<div class="wh-card">
+      <div class="wh-title">${o.id} ${o.priority?'⚡ PRIORITY':''}</div>
+      <div class="wh-sub">${o.items.length} line items · Courier: ${o.courier?COURIERS.find(c=>c.id===o.courier).name:'—'}</div>
+      <button class="btn wh-big-btn" onclick="advance('${o.id}','Packing','Staged')">✓ Pack with paper tape & stage</button>
+    </div>`).join('');
+  }
+  if(whStage==='Staged'){
+    if(!q.length) return `<div class="wh-empty"><div class="em">🚛</div>Dock bays ready for carrier arrival</div>`;
+    return q.map(o=>`<div class="wh-card">
+      <div class="wh-title">${o.id} ${o.priority?'⚡ PRIORITY':''}</div>
+      <div class="wh-sub">Assigned Carrier: ${COURIERS.find(c=>c.id===o.courier)?.name||'—'}</div>
+      <button class="btn wh-big-btn" onclick="advance('${o.id}','Staged','Shipped')">✓ Loaded onto carrier truck</button>
+      <button class="btn ghost wh-big-btn" onclick="reportIssue('${o.id}','Courier missed pickup')">⚠ Carrier missed pickup cutoff</button>
+    </div>`).join('');
+  }
+}
+
+function render(){
+  const app=document.getElementById('app');
+  if(view==='office'){
+    app.innerHTML = renderHeader()+renderOfficeTabs()+`<main>
+      ${officeTab==='dashboard'?renderDashboard():''}
+      ${officeTab==='orders'?renderOrders():''}
+      ${officeTab==='inventory'?renderInventory():''}
+      ${officeTab==='issues'?renderIssues():''}
+    </main>`+renderModal();
+  } else {
+    app.innerHTML = renderHeader()+`<main>${renderWarehouse()}</main>`;
+  }
+}
+render();
+</script>
+</body>
+</html>
